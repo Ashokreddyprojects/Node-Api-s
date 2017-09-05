@@ -12,6 +12,7 @@ module.exports = function() {
     //register your schema at time of loading the application.
     require("../app/Register/Register.model");
     require("../app/Projects/Project.model");
+    require("../app/Admin/Admin.model");
     
 
 }

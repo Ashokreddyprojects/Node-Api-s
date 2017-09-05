@@ -65,6 +65,28 @@ Project.create=function(req,res)
         });
                
            }
+           
+                Project.findProjrcts=function(req,res)
+            {
+                    projectSchema.find({}, function(err, result){
+            
+            if(!err)
+                {
+                   res.send(result) 
+                    
+                }
+            else
+                {
+                    res.send("Project delete Failure") 
+                    
+                }
+            
+            
+            
+            
+        });
+               
+           }
 
     
 
