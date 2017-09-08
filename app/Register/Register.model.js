@@ -14,6 +14,7 @@ var user = {
     address: { type: String },
     agree: { type: Boolean },
     active: { type: Boolean },
+    removeAccount: { type: Boolean },
     createdDate: { type: Date, default: Date.now }
 };
 
@@ -36,13 +37,6 @@ userSchema.pre('save', function(next) {
         });
     });
 });
-
-
-
-
-
-
-
 
 
 

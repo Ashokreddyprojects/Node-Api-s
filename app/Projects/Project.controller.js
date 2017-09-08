@@ -1,6 +1,8 @@
 var Project={};
 var projectSchema = require("mongoose").model("ProjectList");
 
+
+
 Project.create=function(req,res)
     {   
                    let project = new projectSchema(req.body);
@@ -51,6 +53,28 @@ Project.create=function(req,res)
             if(!err)
                 {
                    res.send("Project delete") 
+                    
+                }
+            else
+                {
+                    res.send("Project delete Failure") 
+                    
+                }
+            
+            
+            
+            
+        });
+               
+           }
+           
+                Project.findProjrcts=function(req,res)
+            {
+                    projectSchema.find({}, function(err, result){
+            
+            if(!err)
+                {
+                   res.send(result) 
                     
                 }
             else

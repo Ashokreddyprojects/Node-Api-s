@@ -1,12 +1,13 @@
 var Register = {};
 var profileSchema = require("mongoose").model("Userprofile");
 //var AdminSchema = require("mongoose").model("Adminprofile");
+var config=require("../../config/config");
 
 var mongoose = require('mongoose'),
     Schema = mongoose.Schema,
     bcrypt = require('bcrypt'),
     SALT_WORK_FACTOR = 10;
-
+var jwt    = require('jsonwebtoken');
 
 
 Register.register = function (req, res) {
@@ -26,30 +27,56 @@ Register.register = function (req, res) {
 
         if (!err) {
             if (obj == null) {
+                req.body.removeAccount = true;
                 let profile = new profileSchema(req.body);
                 profile.save()
                     .then(function (response) {
                         console.log("save")
+
                         var out = {
                             msg: "sucesss",
-                            url: "dashboard"
+                            response: response
 
                         }
                         res.json(out);
                     })
                     .catch(function (err) {
-                        console.log(err);
-                        res.json("Error in save");
+
+                        var out = {
+                            msg: "Error in save",
+                            response: err
+
+                        }
+                        res.json(out);
+
                     })
 
             } else {
                 if (obj.email == req.body.email && obj.username == req.body.username) {
-                    res.send("username and email already existed");
-                } else if (obj.email == req.body.email) {
+                    var out = {
+                        msg: 'username and email already existed',
+                        // response:obj
 
-                    res.send("email already existed");
+                    }
+                    res.json(out);
+
+                } else if (obj.email == req.body.email) {
+                    var out = {
+                        msg: 'email already existed',
+                        // response:obj
+
+                    }
+                    res.json(out);
+
+
                 } else if (obj.username == req.body.username) {
-                    res.send("username already existed");
+                    var out = {
+                        msg: 'username already existed',
+                        // response:obj
+
+                    }
+                    res.json(out);
+
                 }
 
             }
@@ -87,21 +114,34 @@ Register.update = function (req, res) {
     profileSchema.update({
         '_id': req.body.id
     }, {
-        $set: updateData
-    }, function (err, result) {
+            $set: updateData
+        }, function (err, result) {
 
-        if (!err) {
-            res.send("updated")
+            if (!err) {
+                var out = {
+                    msg: 'your profile has been successfully updated',
+                    response: result
 
-        } else {
-            res.send("updated Failure")
+                }
+                res.json(out);
+                // res.send("updated")
 
-        }
+            } else {
+
+                var out = {
+                    msg: 'update failed like did not matched id',
+                    // response: result
+
+                }
+                res.json(out);
+                // res.send("updated Failure")
+
+            }
 
 
 
 
-    });
+        });
 
 }
 
@@ -109,6 +149,8 @@ Register.update = function (req, res) {
 
 
 Register.delete = function (req, res) {
+
+    /*
     profileSchema.deleteOne({
         _id: req.body.id
     }, function (err, result) {
@@ -120,36 +162,126 @@ Register.delete = function (req, res) {
             res.send("user delete Failure")
 
         }
+        
+    }); */
+
+
+
+    var RemoveAccount = {
+        removeAccount: req.body.removeAccount,
+    }
+
+    profileSchema.update({
+        '_id': req.body.id
+    }, {
+            $set: RemoveAccount
+        }, function (err, result) {
+
+            if (!err) {
+                var out = {
+                    msg: 'Account Removed Successfully',
+                    response: result
+
+                }
+                res.json(out);
+                // res.send("updated")
+
+            } else {
+
+                var out = {
+                    msg: 'Unable to delete like did not matched id',
+                    // response: result
+
+                }
+                res.json(out);
+                // res.send("updated Failure")
+
+            }
 
 
 
 
-    });
+        });
+
+
+
 
 }
 
 
 Register.ActiveAccount = function (req, res) {
-    profileSchema.update({
+
+    var token=req.body.token;
+
+var a={}
+    
+
+  jwt.verify(token, config.secret, function(err, decoded) {      
+      if (!err) {
+            // req.decoded = decoded;   
+        console.log("acess") 
+        console.log(decoded)
+         a=decoded
+         a.status=true;
+        
+      } else {
+
+//console.log(err)
+      //  res.writeHead(200, {'Content-Type': 'text/plain',});
+         // res.json({err:err, success: false, message: 'Failed to authenticate token.' });  
+     a={err:err, success: false, message: 'Failed to authenticate token.',status:false }
+      }
+    });
+
+
+    if(a.status)
+        {
+
+
+            profileSchema.update({
         '_id': req.body.id
     }, {
-        $set: {
-            active: req.body.active
+            $set: {
+                active: req.body.active
+            }
+        }, function (err, result) {
+
+            if (!err) {
+                var out = {
+                    msg: 'Active Account Successfully updated',
+                    response: result,
+                    tokenStatus:a,
+                    token:token
+
+                }
+                res.json(out);
+                // res.send("user Active Account updated")
+
+            } else {
+                var out = {
+                    msg: 'Active Account updated Failure like did not matched id',
+                    // response: result
+
+                }
+                res.json(out);
+                //res.send(" Active Account updated Failure")
+
+            }
+
+
+
+
+        });
+
+
         }
-    }, function (err, result) {
+    else{
 
-        if (!err) {
-            res.send("user Active Account updated")
+ res.json(a);
 
-        } else {
-            res.send("user Active Account updated Failure")
+     }
 
-        }
-
-
-
-
-    });
+    
 
 }
 
@@ -166,31 +298,60 @@ Register.UserLogin = function (req, res) {
     }, function (err, result) {
 
         if (!err) {
-            
-            
-            if(result!=null)
-                {
 
-            bcrypt.genSalt(SALT_WORK_FACTOR, function (err, salt) {
-                if (err) return next(err);
-                bcrypt.compare(req.body.password, result.password, function (err, isMatch) {
-                    if (err) {
-                        return console.error(err);
-                    }
-                    var outPut = {
-                        "Match": isMatch
 
-                    }
-                    res.send(outPut);
+            if (result != null) {
+
+                bcrypt.genSalt(SALT_WORK_FACTOR, function (err, salt) {
+                    if (err) return next(err);
+                    bcrypt.compare(req.body.password, result.password, function (err, isMatch) {
+                        if (err) {
+                            return console.error(err);
+                        }
+
+                        if (isMatch) {
+
+                            var token = jwt.sign({id:result._id}, config.secret, { expiresIn: 60*60 });
+
+
+              var outPut = {
+                                msg: "You have been successfully logged",
+                                id:result._id,
+                                 token:token,
+                                Match: isMatch
+
+                            }
+                            res.send(outPut);
+
+
+                        } else {
+                            var outPut = {
+                                msg: "Password does not match",
+                                Match: isMatch
+
+                            }
+                            res.send(outPut);
+
+
+
+
+                        }
+
+                    });
+
+
                 });
 
+            }
+            else {
+                //res.send("No data pls register");
+                var outPut = {
+                    msg: "invalid login details"
 
-            });
-                    
+
                 }
-            else{
-                res.send("No data pls register");
-                
+                res.send(outPut);
+
             }
 
 
