@@ -100,6 +100,33 @@ Register.register = function (req, res) {
 
 Register.update = function (req, res) {
 
+
+     var token=req.body.token;
+
+var a={}
+    
+
+  jwt.verify(token, config.secret, function(err, decoded) {      
+      if (!err) {
+            // req.decoded = decoded;   
+        console.log("acess") 
+        console.log(decoded)
+         a=decoded
+         a.status=true;
+        
+      } else {
+
+//console.log(err)
+      //  res.writeHead(200, {'Content-Type': 'text/plain',});
+         // res.json({err:err, success: false, message: 'Failed to authenticate token.' });  
+     a={err:err, success: false, message: 'Failed to authenticate token.',status:false }
+      }
+    });
+
+     if(a.status)
+        {
+
+
     var updateData = {
         email: req.body.email,
         username: req.body.username,
@@ -120,7 +147,9 @@ Register.update = function (req, res) {
             if (!err) {
                 var out = {
                     msg: 'your profile has been successfully updated',
-                    response: result
+                    response: result, 
+                    tokenStatus:a,
+                    token:token
 
                 }
                 res.json(out);
@@ -142,6 +171,14 @@ Register.update = function (req, res) {
 
 
         });
+
+        }
+    else{
+
+
+          res.json(a);
+
+    }
 
 }
 
@@ -166,6 +203,32 @@ Register.delete = function (req, res) {
     }); */
 
 
+   var token=req.body.token;
+
+var a={}
+    
+
+  jwt.verify(token, config.secret, function(err, decoded) {      
+      if (!err) {
+            // req.decoded = decoded;   
+        console.log("acess") 
+        console.log(decoded)
+         a=decoded
+         a.status=true;
+        
+      } else {
+
+//console.log(err)
+      //  res.writeHead(200, {'Content-Type': 'text/plain',});
+         // res.json({err:err, success: false, message: 'Failed to authenticate token.' });  
+     a={err:err, success: false, message: 'Failed to authenticate token.',status:false }
+      }
+    });
+
+     if(a.status)
+        {
+
+
 
     var RemoveAccount = {
         removeAccount: req.body.removeAccount,
@@ -180,7 +243,10 @@ Register.delete = function (req, res) {
             if (!err) {
                 var out = {
                     msg: 'Account Removed Successfully',
-                    response: result
+                    response: result,
+                     tokenStatus:a,
+                    token:token
+
 
                 }
                 res.json(out);
@@ -202,6 +268,15 @@ Register.delete = function (req, res) {
 
 
         });
+
+        }
+    else
+
+        {
+             res.json(a);
+
+
+        }
 
 
 
